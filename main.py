@@ -2,8 +2,12 @@
 import urllib.request
 import json
 import datetime
+import sys
+import schedule
+import time
+import setting
 
-token = '0irVpDIYgnm1pYvhJxTdVIfp1P3xhnyhPIHimbmAy69VzhVTapfuX8QLjiPTH7Rhtw9qXnN3WLf89CWyz3SZcFyHb6cHYRiohY/gcKaQJZJp4j8NVeRPosEzrxZ8ltMQ3LbvqXo4hc2V6xCrUEFwFQdB04t89/1O/w1cDnyilFU='
+token = setting.token
 
 daysofweek = ["月", "火", "水", "木", "金", "土", "日"]
 
@@ -14,6 +18,7 @@ timetable = {
     "木": ["保健体育", "保健体育", "世界史", "世界史", "英語IC", "英語多読",  "特活"],
     "金": ["現代社会", "現代社会", "基礎数A", "基礎数A", "専門教科", "専門教科"]
 }
+
 def sendlinemessage(data, token):
     headers = {
         'Content-Type': 'application/json',
@@ -35,45 +40,62 @@ def sendlinemessage(data, token):
     except urllib.error.URLError as e:
          print(e.reason)
 
-
-def  send_timetable():
-    dt = datetime.datetime.now()
-    if dt.weekday() >  4:
+def gen_timetable(dt, weekday="default"):
+    if weekday == "default":
+        weekday = dt.weekday()
+    if weekday >  4:
         print("今日はお休みです！")
-        return 0
+        exit(0)
 
-    today_timetable = timetable[daysofweek[dt.weekday()]]
-    today_data = []
+    today_timetable = timetable[daysofweek[weekday]]
+    return today_timetable
 
-    for i in range(len(today_timetable)):
-        try:
-            if today_timetable[i] == today_timetable[i+3]: 
-                today_data.append(str(i+1) + "~" + str(i+4) + "限: " + today_timetable[i])
-                break
-        except IndexError:
-            pass
 
-        if not len(today_timetable) == i + 1:
-            if today_timetable[i] == today_timetable[i+1]:      
-                today_data.append(str(i + 1) + "~" + str(i+2) + "限: " + today_timetable[i])
-                continue
-            elif today_timetable[i - 1] == today_timetable[i]:
-                continue
 
-        elif today_timetable[i - 1] == today_timetable[i]:
-            if len(today_timetable) == i + 1:
-                break
-            continue
+def send_now_class():
+    schedule.every().day.at("08:40").do(sendstarttime, 1)
+    schedule.every().day.at("09:35").do(sendstarttime, 2)
+    schedule.every().day.at("10:30").do(sendstarttime, 3)
+    schedule.every().day.at("11:25").do(sendstarttime, 4)
+    schedule.every().day.at("12:50").do(sendstarttime, 5)
+    schedule.every().day.at("13:45").do(sendstarttime, 6)
+    schedule.every().day.at("14:20").do(sendstarttime, 7)
+    
+    
+def sendstarttime(lesson_number):
+    dt = datetime.datetime.now()
+    today_timetable = gen_timetable(dt)
 
-        today_data.append(" " + str(i + 1) + " 限: " + today_timetable[i])
+    if not len(today_timetable) < lesson_number and lesson_number != 1:
+        if today_timetable[lesson_number - 2] == today_timetable[lesson_number - 1]:
+            print("Same as last time.")
+            exit(0)
+        
     data = json.dumps({
              "messages":[
                   {
                        "type":"text",
-                        "text": daysofweek[dt.weekday()] + "曜日\n" + ','.join(today_data).replace(',', '\n') +  ""
+                        "text":str(lesson_number) + "限: " + today_timetable[lesson_number - 1] + "の授業の時間です."
                   }
             ]
     })
     sendlinemessage(data, token)
 
-send_timetable()
+
+
+def main():
+    schedule.every().day.at("08:40").do(sendstarttime, 1)
+    schedule.every().day.at("09:35").do(sendstarttime, 2)
+    schedule.every().day.at("10:30").do(sendstarttime, 3)
+    schedule.every().day.at("11:25").do(sendstarttime, 4)
+    schedule.every().day.at("12:50").do(sendstarttime, 5)
+    schedule.every().day.at("13:45").do(sendstarttime, 6)
+    schedule.every().day.at("14:20").do(sendstarttime, 7)
+    
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+    exit(0)
+
+if __name__ == "__main__":
+    main()

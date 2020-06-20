@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "/home/ksmt/git/nnct-linebot/.venv/bin/python3",
+    "python.pythonPath": "/usr/sbin/python",
     "azureFunctions.deploySubpath": ".",
     "azureFunctions.scmDoBuildDuringDeployment": true,
     "azureFunctions.pythonVenv": ".venv",

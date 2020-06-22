@@ -90,7 +90,7 @@ def main():
     schedule.every().day.at("11:25").do(sendstarttime, 4)
     schedule.every().day.at("12:50").do(sendstarttime, 5)
     schedule.every().day.at("13:45").do(sendstarttime, 6)
-    schedule.every().day.at("14:20").do(sendstarttime, 7)
+    schedule.every().day.at("14:30").do(sendstarttime, 7)
     
     while True:
         schedule.run_pending()
